@@ -22,8 +22,8 @@ class DocChatbot:
     files: str
 
     def __init__(self) -> None:
-        # self.llm = TPUChatglm()
-        self.llm = None
+        self.llm = TPUChatglm()
+        # self.llm = None
         self.vector_db = None
         self.embeddings = HuggingFaceEmbeddings(model_name='./embedding')
         print("chatbot init success!")

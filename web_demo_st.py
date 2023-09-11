@@ -113,6 +113,7 @@ with st.sidebar:
 
         if submitted1 and option:
             chatbot.load_vector_db_from_local(option)
+            st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
             st.success('知识库导入完成！', icon='🎉')
             st.session_state['files'] = option.split(", ")
             st.balloons()
