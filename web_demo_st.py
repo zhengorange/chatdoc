@@ -55,7 +55,7 @@ with st.sidebar:
         with col1:
             submitted1 = st.form_submit_button("导入知识库")
         with col2:
-            submitted = st.form_submit_button("构建知识库")
+            submitted = st.form_submit_button("添加知识库")
         with col5:
             submitted2 = st.form_submit_button("保存知识库")
 
@@ -70,6 +70,9 @@ with st.sidebar:
 
         if not uploaded_file and submitted:
             st.error("请先上传文件，再点击构建知识库。")
+
+        if submitted1 and len([x for x in chatbot.get_vector_db()]) == 0:
+            st.error("无可选的本地知识库。")
 
         if clear:
             if 'files' not in st.session_state:
@@ -95,9 +98,13 @@ with st.sidebar:
                         f.close()
                     files_name.append(file_name)
                 chatbot.init_vector_db_from_documents(files_name)
-                st.session_state['files'] = files_name
+                if 'files' in st.session_state:
+                    st.session_state['files'] = st.session_state['files'] + files_name
+                else:
+                    st.session_state['files'] = files_name
+
                 st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
-                st.success('知识库构建完成！', icon='🎉')
+                st.success('知识库添加完成！', icon='🎉')
                 st.balloons()
 
         if submitted2 and 'files' in st.session_state:

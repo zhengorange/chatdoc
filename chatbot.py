@@ -19,14 +19,13 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 class DocChatbot:
     llm: TPUChatglm
     embeddings: HuggingFaceEmbeddings
-    vector_db: FAISS
     files: str
 
     def __init__(self) -> None:
-        self.llm = TPUChatglm()
-        # self.llm = None
+        # self.llm = TPUChatglm()
+        self.llm = None
+        self.vector_db = None
         self.embeddings = HuggingFaceEmbeddings(model_name='./embedding')
-
         print("chatbot init success!")
 
     def query_from_doc(self, query_string, k=1):
@@ -52,23 +51,29 @@ class DocChatbot:
             doc[0].page_content = filter_space(doc[0].page_content)
             doc = text_splitter.split_documents(doc)
             docs.extend(doc)
-        self.files = ", ".join([item.split("/")[-1] for item in file_list])
+
         # print([(len(x.page_content), count_chinese_chars(x.page_content)) for x in docs])
         # for item in docs:
         #     if len(item.page_content) / count_chinese_chars(item.page_content) > 1.5:
         #         print(len(item.page_content), item.page_content)
-
-        self.vector_db = FAISS.from_documents(docs, self.embeddings)
+        if self.vector_db is None:
+            self.files = ", ".join([item.split("/")[-1] for item in file_list])
+            self.vector_db = FAISS.from_documents(docs, self.embeddings)
+        else:
+            self.files = self.files + ", " + ", ".join([item.split("/")[-1] for item in file_list])
+            self.vector_db.add_documents(docs)
         return True
 
         # load vector db from local
 
     def load_vector_db_from_local(self, index_name: str):
         self.vector_db = FAISS.load_local(f"./data/db/{index_name}", self.embeddings, index_name)
+        self.files = index_name
 
     def save_vector_db_to_local(self):
         FAISS.save_local(self.vector_db, "data/db/" + self.files, self.files)
         print("Vector db saved to local")
+
     def get_vector_db(self):
         file_list = glob("./data/db/*")
         return (x.split("/")[-1] for x in file_list)

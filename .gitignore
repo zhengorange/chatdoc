@@ -1,4 +1,5 @@
 .idea
-data/uploaded
+data/uploaded/*
+data/db/*
 __pycache__
 embedding
