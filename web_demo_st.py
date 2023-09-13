@@ -120,6 +120,8 @@ with st.sidebar:
 
     if 'files' in st.session_state:
         st.markdown("\n".join([str(i + 1) + ". " + x.split("/")[-1] for i, x in enumerate(st.session_state.files)]))
+    else:
+        st.info('点击Browse files选择要上传的文档，然后点击添加知识库按钮构建知识库。或者选择选择已持久化的知识库然后点击导入知识库按钮导入知识库。', icon="ℹ️")
 
 if 'messages' in st.session_state:
     for msg in st.session_state.messages:
