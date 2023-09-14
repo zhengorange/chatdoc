@@ -51,27 +51,30 @@ with st.sidebar:
             chatbot.get_vector_db()
         )
 
-        col1, col2, col5 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
-            submitted1 = st.form_submit_button("导入知识库")
+            import_repository = st.form_submit_button("导入知识库")
         with col2:
-            submitted = st.form_submit_button("添加知识库")
-        with col5:
-            submitted2 = st.form_submit_button("保存知识库")
-
+            add_repository = st.form_submit_button("添加知识库")
         col3, col4 = st.columns(2)
         with col3:
-            clear = st.form_submit_button("清除聊天记录")
+            save_repository = st.form_submit_button("保存知识库")
         with col4:
-            clear_file = st.form_submit_button("移除当前知识库")
+            del_repository = st.form_submit_button("删除知识库")
 
-        if submitted2 and 'files' not in st.session_state:
+        col5, col6 = st.columns(2)
+        with col5:
+            clear = st.form_submit_button("清除聊天记录")
+        with col6:
+            clear_file = st.form_submit_button("移除选中文档")
+
+        if save_repository and 'files' not in st.session_state:
             st.error("先上传文件构建知识库，才能保存知识库。")
 
-        if not uploaded_file and submitted:
+        if not uploaded_file and add_repository:
             st.error("请先上传文件，再点击构建知识库。")
 
-        if submitted1 and len([x for x in chatbot.get_vector_db()]) == 0:
+        if import_repository and len([x for x in chatbot.get_vector_db()]) == 0:
             st.error("无可选的本地知识库。")
 
         if clear:
@@ -87,7 +90,7 @@ with st.sidebar:
             if 'messages' in st.session_state:
                 del st.session_state["messages"]
 
-        if uploaded_file and submitted:
+        if uploaded_file and add_repository:
             with st.spinner("Initializing vector db..."):
                 files_name = []
                 for i, item in enumerate(uploaded_file):
@@ -107,16 +110,22 @@ with st.sidebar:
                 st.success('知识库添加完成！', icon='🎉')
                 st.balloons()
 
-        if submitted2 and 'files' in st.session_state:
+        if save_repository and 'files' in st.session_state:
             chatbot.save_vector_db_to_local()
             st.success('知识库保存成功！', icon='🎉')
+            st.experimental_rerun()
 
-        if submitted1 and option:
+        if import_repository and option:
             chatbot.load_vector_db_from_local(option)
             st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
             st.success('知识库导入完成！', icon='🎉')
             st.session_state['files'] = option.split(", ")
             st.balloons()
+
+        if del_repository and option:
+            chatbot.del_vector_db(option)
+            st.success('知识库删除完成！', icon='🎉')
+            st.experimental_rerun()
 
     if 'files' in st.session_state:
         st.markdown("\n".join([str(i + 1) + ". " + x.split("/")[-1] for i, x in enumerate(st.session_state.files)]))

@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+import shutil
 import re
 import time
 from langchain.vectorstores import FAISS
@@ -22,8 +23,8 @@ class DocChatbot:
     files: str
 
     def __init__(self) -> None:
-        self.llm = TPUChatglm()
-        # self.llm = None
+        # self.llm = TPUChatglm()
+        self.llm = None
         self.vector_db = None
         self.embeddings = HuggingFaceEmbeddings(model_name='./embedding')
         print("chatbot init success!")
@@ -73,6 +74,9 @@ class DocChatbot:
     def save_vector_db_to_local(self):
         FAISS.save_local(self.vector_db, "data/db/" + self.files, self.files)
         print("Vector db saved to local")
+
+    def del_vector_db(self, file_name):
+        shutil.rmtree("data/db/" + file_name)
 
     def get_vector_db(self):
         file_list = glob("./data/db/*")
