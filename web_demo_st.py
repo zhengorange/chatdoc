@@ -74,7 +74,7 @@ with st.sidebar:
                 st.stop()
 
             st.session_state['renaming'] = True
-            title = st.text_input('Movie title')
+            title = st.text_input('新知识库名称')
             if st.form_submit_button("确认重命名"):
                 if title == "":
                     st.error("请输出新的知识库名称。")
@@ -82,7 +82,7 @@ with st.sidebar:
                     chatbot_st.rename(option, title)
                     st.success("重命名成功。")
                     del st.session_state["renaming"]
-                    time.sleep(0.3)
+                    time.sleep(0.1)
                     st.experimental_rerun()
 
         if save_repository and 'files' not in st.session_state:
