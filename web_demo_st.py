@@ -1,16 +1,16 @@
 # coding=utf-8
-
-from chatbot import DocChatbot, stream_predict
+from chatbot import DocChatbot
 import os
 import streamlit as st
+import time
 
 
 @st.cache_resource
 def load_model():
-    return DocChatbot()
+    return DocChatbot.get_instance()
 
 
-chatbot = load_model()
+chatbot_st = load_model()
 
 
 def cut_history(u_input):
@@ -48,7 +48,7 @@ with st.sidebar:
 
         option = st.selectbox(
             "选择已保存的知识库",
-            chatbot.get_vector_db()
+            chatbot_st.get_vector_db()
         )
 
         col1, col2 = st.columns(2)
@@ -68,13 +68,30 @@ with st.sidebar:
         with col6:
             clear_file = st.form_submit_button("移除选中文档")
 
+        if st.form_submit_button("重命名知识库") or 'renaming' in st.session_state:
+            if len([x for x in chatbot_st.get_vector_db()]) == 0:
+                st.error("无可选的本地知识库。")
+                st.stop()
+
+            st.session_state['renaming'] = True
+            title = st.text_input('Movie title')
+            if st.form_submit_button("确认重命名"):
+                if title == "":
+                    st.error("请输出新的知识库名称。")
+                else:
+                    chatbot_st.rename(option, title)
+                    st.success("重命名成功。")
+                    del st.session_state["renaming"]
+                    time.sleep(0.3)
+                    st.experimental_rerun()
+
         if save_repository and 'files' not in st.session_state:
             st.error("先上传文件构建知识库，才能保存知识库。")
 
         if not uploaded_file and add_repository:
             st.error("请先上传文件，再点击构建知识库。")
 
-        if import_repository and len([x for x in chatbot.get_vector_db()]) == 0:
+        if import_repository and len([x for x in chatbot_st.get_vector_db()]) == 0:
             st.error("无可选的本地知识库。")
 
         if clear:
@@ -100,7 +117,7 @@ with st.sidebar:
                         f.write(item.getbuffer())
                         f.close()
                     files_name.append(file_name)
-                chatbot.init_vector_db_from_documents(files_name)
+                chatbot_st.init_vector_db_from_documents(files_name)
                 if 'files' in st.session_state:
                     st.session_state['files'] = st.session_state['files'] + files_name
                 else:
@@ -111,26 +128,28 @@ with st.sidebar:
                 st.balloons()
 
         if save_repository and 'files' in st.session_state:
-            chatbot.save_vector_db_to_local()
+            chatbot_st.save_vector_db_to_local()
             st.success('知识库保存成功！', icon='🎉')
             st.experimental_rerun()
 
         if import_repository and option:
-            chatbot.load_vector_db_from_local(option)
+            chatbot_st.load_vector_db_from_local(option)
             st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
             st.success('知识库导入完成！', icon='🎉')
             st.session_state['files'] = option.split(", ")
             st.balloons()
 
         if del_repository and option:
-            chatbot.del_vector_db(option)
+            chatbot_st.del_vector_db(option)
             st.success('知识库删除完成！', icon='🎉')
             st.experimental_rerun()
 
     if 'files' in st.session_state:
         st.markdown("\n".join([str(i + 1) + ". " + x.split("/")[-1] for i, x in enumerate(st.session_state.files)]))
     else:
-        st.info('点击Browse files选择要上传的文档，然后点击添加知识库按钮构建知识库。或者选择选择已持久化的知识库然后点击导入知识库按钮导入知识库。', icon="ℹ️")
+        st.info(
+            '点击Browse files选择要上传的文档，然后点击添加知识库按钮构建知识库。或者选择选择已持久化的知识库然后点击导入知识库按钮导入知识库。',
+            icon="ℹ️")
 
 if 'messages' in st.session_state:
     for msg in st.session_state.messages:
@@ -147,7 +166,7 @@ if user_input := st.chat_input():
         with st.chat_message("assistant"):
             answer_container = st.empty()
             # for result_answer, _ in stream_predict(user_input, his):
-            for result_answer, _ in chatbot.llm.stream_predict(user_input, his):
+            for result_answer, _ in chatbot_st.llm.stream_predict(user_input, his):
                 answer_container.markdown(result_answer)
         st.session_state["messages"].append({"role": "assistant", "content": result_answer})
     else:
@@ -156,13 +175,13 @@ if user_input := st.chat_input():
         with st.chat_message("assistant"):
             answer_container = st.empty()
 
-            docs = chatbot.query_from_doc(user_input, 3)
+            docs = chatbot_st.query_from_doc(user_input, 3)
             refer = "\n".join([x.page_content.replace("\n", '\t') for x in docs])
             PROMPT = """{}\n请根据下面的参考文档回答上述问题。\n{}\n"""
             prompt = PROMPT.format(user_input, refer)
 
             # for result_answer, _ in stream_predict(user_input, []):
-            for result_answer, _ in chatbot.llm.stream_predict(prompt, []):
+            for result_answer, _ in chatbot_st.llm.stream_predict(prompt, []):
                 answer_container.markdown(result_answer)
 
             with st.expander("References"):

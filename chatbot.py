@@ -18,14 +18,13 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 
 
 class DocChatbot:
-    llm: TPUChatglm
-    embeddings: HuggingFaceEmbeddings
-    files: str
+    _instance = None
 
     def __init__(self) -> None:
-        # self.llm = TPUChatglm()
-        self.llm = None
+        self.llm = TPUChatglm()
+        # self.llm = None
         self.vector_db = None
+        self.files = None
         self.embeddings = HuggingFaceEmbeddings(model_name='./embedding')
         print("chatbot init success!")
 
@@ -49,7 +48,7 @@ class DocChatbot:
             else:
                 loader = UnstructuredFileLoader(file)
             doc = loader.load()
-            doc[0].page_content = filter_space(doc[0].page_content)
+            doc[0].page_content = self.filter_space(doc[0].page_content)
             doc = text_splitter.split_documents(doc)
             docs.extend(doc)
 
@@ -57,6 +56,7 @@ class DocChatbot:
         # for item in docs:
         #     if len(item.page_content) / count_chinese_chars(item.page_content) > 1.5:
         #         print(len(item.page_content), item.page_content)
+
         if self.vector_db is None:
             self.files = ", ".join([item.split("/")[-1] for item in file_list])
             self.vector_db = FAISS.from_documents(docs, self.embeddings)
@@ -82,38 +82,49 @@ class DocChatbot:
         file_list = glob("./data/db/*")
         return (x.split("/")[-1] for x in file_list)
 
+    def load_first_vector_db(self):
+        file_list = glob("./data/db/*")
+        index_name = file_list[0].split("/")[-1]
+        self.vector_db = FAISS.load_local(file_list[0], self.embeddings, index_name)
+        self.files = index_name
 
-def stream_predict(query, history):
-    history.append((query, ''))
-    res = ''
-    i = 0
-    while i < 3:
-        res += str(i)
-        i += 1
-        time.sleep(0.01)
-        history[-1] = (query, res)
-        yield res, history
+    def stream_predict(self, query, history):
+        history.append((query, ''))
+        res = ''
+        i = 0
+        while i < 3:
+            res += str(i)
+            i += 1
+            time.sleep(0.01)
+            history[-1] = (query, res)
+            yield res, history
 
-
-def filter_space(string):
-    result = ""
-    count = 0
-    for char in string:
-        if char == " " or char == '\t':
-            count += 1
-            if count < 4:
+    def filter_space(self, string):
+        result = ""
+        count = 0
+        for char in string:
+            if char == " " or char == '\t':
+                count += 1
+                if count < 4:
+                    result += char
+            else:
                 result += char
-        else:
-            result += char
-            count = 0
-    return result
+                count = 0
+        return result
+
+    def rename(self, file_list, new_name):
+        # print("rename", file_list, new_name)
+        os.rename("./data/db/"+file_list, "./data/db/"+new_name)
+        os.rename("./data/db/"+new_name+"/"+file_list+".faiss", "./data/db/"+new_name+"/"+new_name+".faiss")
+        os.rename("./data/db/"+new_name + "/" + file_list + ".pkl", "./data/db/"+new_name + "/" + new_name + ".pkl")
 
 
-def count_chinese_chars(string):
-    pattern = re.compile(r'[\u4e00-\u9fa5]')
-    chinese_chars = re.findall(pattern, string)
-    return len("".join(chinese_chars))
 
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = DocChatbot()
+        return cls._instance
 # if __name__ == "__main__":
 #     loader = UnstructuredWordDocumentLoader("./data/uploaded/北方航空科技 框架合同 1.docx")
 #     doc = loader.load()
