@@ -96,7 +96,7 @@ with st.sidebar:
 
         if clear:
             if 'files' not in st.session_state:
-                if "message" in st.session_state:
+                if "messages" in st.session_state:
                     del st.session_state["messages"]
             else:
                 st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
