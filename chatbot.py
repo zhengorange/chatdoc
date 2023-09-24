@@ -77,6 +77,8 @@ class DocChatbot:
 
     def del_vector_db(self, file_name):
         shutil.rmtree("data/db/" + file_name)
+        self.vector_db = None
+
 
     def get_vector_db(self):
         file_list = glob("./data/db/*")
@@ -91,10 +93,9 @@ class DocChatbot:
     def stream_predict(self, query, history):
         history.append((query, ''))
         res = ''
-        i = 0
-        while i < 3:
-            res += str(i)
-            i += 1
+        response = "根据文件内容,这个合同的甲方(购买方)是内蒙古北方航空科技有限公司。"
+        for i in response:
+            res += i
             time.sleep(0.01)
             history[-1] = (query, res)
             yield res, history
