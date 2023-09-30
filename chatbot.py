@@ -13,6 +13,7 @@ from chat import TPUChatglm
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List
 from glob import glob
+import cpuinfo
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -21,8 +22,13 @@ class DocChatbot:
     _instance = None
 
     def __init__(self) -> None:
-        self.llm = TPUChatglm()
-        # self.llm = None
+        self.llm = None
+
+        cpu_info = cpuinfo.get_cpu_info()
+        cpu_name = cpu_info['brand_raw']
+        if cpu_name != "Apple M1 Pro":
+            self.llm = TPUChatglm()
+
         self.vector_db = None
         self.files = None
         self.embeddings = HuggingFaceEmbeddings(model_name='./embedding')
