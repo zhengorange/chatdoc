@@ -66,11 +66,11 @@ class TPUChatglm:
         history.append((query, ''))
 
         prompt = ''
-        if len(history) >= 1:
+        if len(history) > 1:
             prompt += "{}\n\n答：{}\n\n".format(history[0][0], history[0][1])
-            for i, (old_query, response) in enumerate(history[1:]):
+            for i, (old_query, response) in enumerate(history[1:-1]):
                 prompt += "[Round {}]\n\n问：{}\n\n答：{}\n\n".format(i + 1, old_query, response)
-            prompt += "[Round {}]\n\n问：{}".format(len(history) + 1, query)
+            prompt += "[Round {}]\n\n问：{}".format(len(history), query)
         else:
             prompt += "{}".format(query)
 
@@ -91,11 +91,10 @@ class TPUChatglm:
 
 
 if __name__ == "__main__":
-    # chatglm = TPUChatglm()
-    # for i in range(200):
-    #     print(i)
-    #     r = chatglm.predict("写一首关于春天的七言绝句。")
-    #     print(r)
+    chatglm = TPUChatglm()
+    for respone, history in chatglm.stream_predict("你好", []):
+        print(respone)
+
 
     # import pdb
     # pdb.set_trace()

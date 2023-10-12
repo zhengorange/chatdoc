@@ -3,23 +3,19 @@
 这个项目是基于[ChatGLM2-TPU](https://github.com/sophgo/ChatGLM2-TPU)实现的文档对话工具。项目可在BM1684X上独立部署运行。
 
 
-## Introduction
+## 介绍
 该项目的主要目标是通过使用自然语言来简化与文档的交互，并提取有价值的信息。此项目使用LangChain和ChatGLM2构建，以向用户提供流畅自然的对话体验。
 
-![](static/web-ui.png)
 
+## 特点
 
-## Features
-
-- 支持多种文档格式PDF, DOCX, PPTX, TXT等。
+- 完全本地推理。
+- 支持多种文档格式PDF, DOCX, TXT。
 - 与文档内容进行聊天，提出问题根据文档获得相关答案。
 - 用户友好的界面，确保流畅的交互。
 
-## Architecture
 
-![](./static/architecture.png)
-
-## Installation
+## 安装
 
 按照以下步骤，可以将这个项目部署到SoPhGo盒子上。
 
@@ -36,24 +32,50 @@ cd chatdoc
 pip install -r requirements.txt
 ```
 
-## Configuration
+4. 下载embedding模型
 
-项目加载需要配置两个模型文件的地址和一个库文件地址。
+百度网盘链接: https://pan.baidu.com/s/14cn8KSeB6jlfB--w5bbe3A?pwd=vp34
+下载完成将下载的embedding文件夹放置在与chatdoc目录下。
 
-```ini
-libtpuchat_path = ../chatglm/libtpuchat.so
-bmodel_path = ../chatglm/chatglm2-6b.bmodel
-token_path = ../chatglm/tokenizer.model
+
+5. 下载模型文件
+
+百度网盘链接：https://pan.baidu.com/s/1smurhVaLELoNmIYHOA8zXg?pwd=a484
+下载完成将下载的chatglm-int8-2048文件夹放置在与chatdoc同级目录下，注意chatdoc和chatglm-int8-2048是并列关系。
+
+6. 下载NLTK语料库
+
+百度网盘链接：https://pan.baidu.com/s/1DzSiDClzyE5TzMygqGI4rg?pwd=22hr
+下载完成将下载的nltk_data文件夹拷贝到用户跟目录，即`cp -r nltk_data ~/`
+
+## 项目结构树
+```
+|-- chatglm-int8-2048     -- 模型文件
+    |-- chatglm2-6b_2048_int8.bmodel
+    |-- libtpuchat.so
+    |-- tokenizer.model
+|-- chatdoc
+    |-- README.md         -- README
+    |-- api.py            -- API服务脚本
+    |-- chat.py           -- Python调用cpp推理接口脚本
+    |-- chatbot.py        -- ChatDoc业务逻辑脚本
+    |-- config.ini        -- 推理模型配置文件
+    |-- requirements.txt  -- 项目依赖
+    |-- run.sh            -- 启动脚本
+    |-- web_demo_st.py    -- 页面交互脚本
+    |-- data          
+    |   |-- db            -- 知识库持久化目录
+    |   |-- uploaded      -- 已上传文件目录
+    |-- embedding         -- 文本嵌入模型
+    |-- static            -- README中图片文件
 ```
 
-## Usage: Web by Streamlit
-
-
+## 启动
 ```bash
 bash run.sh
 ```
 
-## 操作流程介绍
+## 操作说明
 
 ![Alt text](<./static/截屏2023-09-20 12.03.17.png>)
 
