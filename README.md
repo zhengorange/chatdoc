@@ -64,8 +64,8 @@ pip install -r requirements.txt
     |-- run.sh            -- 启动脚本
     |-- web_demo_st.py    -- 页面交互脚本
     |-- data          
-    |   |-- db            -- 知识库持久化目录
-    |   |-- uploaded      -- 已上传文件目录
+        |-- db            -- 知识库持久化目录
+        |-- uploaded      -- 已上传文件目录
     |-- embedding         -- 文本嵌入模型
     |-- static            -- README中图片文件
 ```
