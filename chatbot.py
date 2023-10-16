@@ -2,17 +2,21 @@
 
 import os
 import shutil
-import re
 import time
-from langchain.vectorstores import FAISS
+import numpy as np
+from datetime import datetime
+import faiss
 from langchain.document_loaders import UnstructuredPowerPointLoader, UnstructuredWordDocumentLoader, \
     UnstructuredPDFLoader, UnstructuredFileLoader
 import logging
+import pickle
 from langchain.embeddings import HuggingFaceEmbeddings
+from embedding_tpu.embedding import Word2VecEmbedding
 from chat import TPUChatglm
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List
 from glob import glob
+from tqdm import tqdm
 import cpuinfo
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -20,6 +24,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 
 class DocChatbot:
     _instance = None
+    db_base_path = "data/db"
 
     def __init__(self) -> None:
         self.llm = None
@@ -30,13 +35,26 @@ class DocChatbot:
             self.llm = TPUChatglm()
 
         self.vector_db = None
+        self.string_db = None
         self.files = None
-        self.embeddings = HuggingFaceEmbeddings(model_name='./embedding')
+        # self.embeddings = HuggingFaceEmbeddings(model_name="./embedding")
+        self.embeddings = Word2VecEmbedding()
         print("chatbot init success!")
 
+    def docs2embedding(self, docs):
+        emb = []
+        for i in tqdm(range(len(docs) // 4)):
+            emb += self.embeddings.embed_documents(docs[i * 4: i * 4 + 4])
+        if len(docs) % 4 != 0:
+            residue = docs[-(len(docs) % 4):] + [" " for _ in range(4 - len(docs) % 4)]
+            emb += self.embeddings.embed_documents(residue)[:len(docs) % 4]
+
+        return emb
+
     def query_from_doc(self, query_string, k=1):
-        results = self.vector_db.similarity_search(query_string, k=k)
-        return results
+        query_vec = self.embeddings.embed_query(query_string)
+        _, i = self.vector_db.search(x=np.array([query_vec]), k=k)
+        return [self.string_db[ind] for ind in i[0]]
 
     # split documents, generate embeddings and ingest to vector db
     def init_vector_db_from_documents(self, file_list: List[str]):
@@ -65,36 +83,54 @@ class DocChatbot:
 
         if self.vector_db is None:
             self.files = ", ".join([item.split("/")[-1] for item in file_list])
-            self.vector_db = FAISS.from_documents(docs, self.embeddings)
+            emb = self.docs2embedding([x.page_content for x in docs])
+            self.vector_db = faiss.IndexFlatL2(1024)
+            self.vector_db.add(np.array(emb))
+            self.string_db = docs
         else:
             self.files = self.files + ", " + ", ".join([item.split("/")[-1] for item in file_list])
-            self.vector_db.add_documents(docs)
+            emb = self.docs2embedding([x.page_content for x in docs])
+            self.vector_db.add(np.array(emb))
+            self.string_db += docs
         return True
 
-        # load vector db from local
-
     def load_vector_db_from_local(self, index_name: str):
-        self.vector_db = FAISS.load_local(f"./data/db/{index_name}", self.embeddings, index_name)
-        self.files = index_name
+        with open(f"{self.db_base_path}/{index_name}/db.string", "rb") as file:
+            byte_stream = file.read()
+        self.string_db = pickle.loads(byte_stream)
+        self.vector_db = faiss.read_index(f"{self.db_base_path}/{index_name}/db.index")
+        self.files = open(f"{self.db_base_path}/{index_name}/name.txt", 'r', encoding='utf-8').read()
 
     def save_vector_db_to_local(self):
-        FAISS.save_local(self.vector_db, "data/db/" + self.files, self.files)
-        print("Vector db saved to local")
+        now = datetime.now()
+        folder_name = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
+        os.mkdir(f"{self.db_base_path}/{folder_name}")
+        faiss.write_index(self.vector_db, f"{self.db_base_path}/{folder_name}/db.index")
+        byte_stream = pickle.dumps(self.string_db)
+        with open(f"{self.db_base_path}/{folder_name}/db.string", "wb") as file:
+            file.write(byte_stream)
+        with open(f"{self.db_base_path}/{folder_name}/name.txt", "w", encoding="utf-8") as file:
+            file.write(self.files)
 
     def del_vector_db(self, file_name):
-        shutil.rmtree("data/db/" + file_name)
+        shutil.rmtree(f"{self.db_base_path}/" + file_name)
         self.vector_db = None
 
-
     def get_vector_db(self):
-        file_list = glob("./data/db/*")
-        return (x.split("/")[-1] for x in file_list)
+        file_list = glob(f"{self.db_base_path}/*")
+        return [x.split("/")[-1] for x in file_list]
+
+    def time2file_name(self, path):
+        return open(f"{self.db_base_path}/{path}/name.txt", 'r', encoding='utf-8').read()
 
     def load_first_vector_db(self):
-        file_list = glob("./data/db/*")
+        file_list = glob(f"{self.db_base_path}/*")
         index_name = file_list[0].split("/")[-1]
-        self.vector_db = FAISS.load_local(file_list[0], self.embeddings, index_name)
-        self.files = index_name
+        self.load_vector_db_from_local(index_name)
+
+    def rename(self, file_list, new_name):
+        with open(f"{self.db_base_path}/{file_list}/name.txt", "w", encoding="utf-8") as file:
+            file.write(new_name)
 
     def stream_predict(self, query, history):
         history.append((query, ''))
@@ -119,19 +155,12 @@ class DocChatbot:
                 count = 0
         return result
 
-    def rename(self, file_list, new_name):
-        # print("rename", file_list, new_name)
-        os.rename("./data/db/"+file_list, "./data/db/"+new_name)
-        os.rename("./data/db/"+new_name+"/"+file_list+".faiss", "./data/db/"+new_name+"/"+new_name+".faiss")
-        os.rename("./data/db/"+new_name + "/" + file_list + ".pkl", "./data/db/"+new_name + "/" + new_name + ".pkl")
-
-
-
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
             cls._instance = DocChatbot()
         return cls._instance
+
 # if __name__ == "__main__":
 #     loader = UnstructuredWordDocumentLoader("./data/uploaded/北方航空科技 框架合同 1.docx")
 #     doc = loader.load()

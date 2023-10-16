@@ -44,11 +44,13 @@ with st.sidebar:
     st.title("💬 ChatDoc")
     st.write("上传一个文档，然后与我对话.")
     with st.form("Upload and Process", True):
-        uploaded_file = st.file_uploader("上传文档", type=["pdf", "txt", "docx"], accept_multiple_files=True)
+        uploaded_file = st.file_uploader("上传文档", type=["pdf", "txt", "docx"], accept_multiple_files=True,
+                                         )
 
         option = st.selectbox(
             "选择已保存的知识库",
-            chatbot_st.get_vector_db()
+            chatbot_st.get_vector_db(),
+            format_func=lambda x: chatbot_st.time2file_name(x)
         )
 
         col1, col2 = st.columns(2)
@@ -136,7 +138,7 @@ with st.sidebar:
             chatbot_st.load_vector_db_from_local(option)
             st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
             st.success('知识库导入完成！', icon='🎉')
-            st.session_state['files'] = option.split(", ")
+            st.session_state['files'] = chatbot_st.time2file_name(option).split(", ")
             st.balloons()
 
         if del_repository and option:

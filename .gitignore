@@ -3,3 +3,4 @@ data/uploaded/*
 data/db/*
 __pycache__
 embedding
+embedding_tpu
