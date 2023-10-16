@@ -28,7 +28,7 @@ faiss-cpu==1.7.4
 fastapi==0.101.1
 ffmpy==0.3.1
 filelock==3.12.2
-Flask==2.3.3
+Flask==2.2.2
 fonttools==4.42.0
 frozenlist==1.4.0
 fsspec==2023.6.0
