@@ -27,7 +27,7 @@ git clone https://github.com/zhengorange/chatdoc
 ```bash
 cd chatdoc
 ```
-3. 按照依赖
+3. 安装依赖
 ```bash
 pip3 install -r requirements.txt
 
