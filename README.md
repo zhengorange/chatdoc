@@ -34,8 +34,8 @@ pip install -r requirements.txt
 
 4. 下载embedding模型
 
-百度网盘链接: https://pan.baidu.com/s/14cn8KSeB6jlfB--w5bbe3A?pwd=vp34
-下载完成将下载的embedding文件夹放置在与chatdoc目录下。
+百度网盘链接: 链接: https://pan.baidu.com/s/18wARtq7JdnzphUt9M9HScw?pwd=t2f3
+下载完成将下载的embedding_tpu文件夹放置在与chatdoc目录下。
 
 
 5. 下载模型文件
@@ -66,7 +66,7 @@ pip install -r requirements.txt
     |-- data          
         |-- db            -- 知识库持久化目录
         |-- uploaded      -- 已上传文件目录
-    |-- embedding         -- 文本嵌入模型
+    |-- embedding_tpu     -- 文本嵌入模型
     |-- static            -- README中图片文件
 ```
 
