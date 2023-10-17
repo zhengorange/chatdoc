@@ -29,7 +29,9 @@ cd chatdoc
 ```
 3. 按照依赖
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
+
+pip3 install tpu_perf-1.2.24-py3-none-manylinux2014_aarch64
 ```
 
 4. 下载embedding模型
