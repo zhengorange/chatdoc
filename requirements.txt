@@ -150,3 +150,4 @@ XlsxWriter==3.1.2
 yarl==1.9.2
 zipp==3.16.2
 py-cpuinfo
+loguru==0.7.2
