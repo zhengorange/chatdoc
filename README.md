@@ -79,8 +79,11 @@ embedding分为cpu版本和tpu版本，任选其一即可。
 ```
 
 ## 启动
+
 ```bash
 bash run.sh
+或 
+bash run_emb_tpu.sh
 ```
 
 ## 操作说明
