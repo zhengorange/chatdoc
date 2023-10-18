@@ -1,6 +1,11 @@
 .idea
 data/uploaded/*
+!data/uploaded/
 data/db/*
+!data/db/
+
 __pycache__
-embedding
-embedding_tpu
+embedding/*
+embedding_tpu/*
+!embedding/
+!embedding_tpu/
