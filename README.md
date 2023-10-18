@@ -36,9 +36,14 @@ pip3 install tpu_perf-1.2.24-py3-none-manylinux2014_aarch64
 
 4. 下载embedding模型
 
-百度网盘链接: 链接: https://pan.baidu.com/s/18wARtq7JdnzphUt9M9HScw?pwd=t2f3
-下载完成将下载的embedding_tpu文件夹放置在与chatdoc目录下。
+embedding分为cpu版本和tpu版本，任选其一即可。
+- TPU版本
+百度网盘链接: https://pan.baidu.com/s/18wARtq7JdnzphUt9M9HScw?pwd=t2f3
+下载完成将下载的embedding_tpu文件夹覆盖chatdoc目录下的embedding_tpu。
 
+- CPU版本
+百度网盘链接: https://pan.baidu.com/s/1yFrk0Jtmbfr-nHnWvXF6AA?pwd=x5rw
+下载完成将下载的embedding文件夹覆盖chatdoc目录下的embedding。
 
 5. 下载模型文件
 
@@ -68,7 +73,8 @@ pip3 install tpu_perf-1.2.24-py3-none-manylinux2014_aarch64
     |-- data          
         |-- db            -- 知识库持久化目录
         |-- uploaded      -- 已上传文件目录
-    |-- embedding_tpu     -- 文本嵌入模型
+    |-- embedding_tpu     -- 文本嵌入模型TPU版本
+    |-- embedding         -- 文本嵌入模型CPU版本
     |-- static            -- README中图片文件
 ```
 

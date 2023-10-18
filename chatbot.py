@@ -37,8 +37,13 @@ class DocChatbot:
         self.vector_db = None
         self.string_db = None
         self.files = None
-        # self.embeddings = HuggingFaceEmbeddings(model_name="./embedding")
-        self.embeddings = Word2VecEmbedding()
+        embeding_tpye = os.getenv("EMBEDDING_TYPE")
+        if embeding_tpye == "cpu":
+            self.embeddings_size = 768
+            self.embeddings = HuggingFaceEmbeddings(model_name="./embedding")
+        else:
+            self.embeddings_size = 1024
+            self.embeddings = Word2VecEmbedding()
         print("chatbot init success!")
 
     def docs2embedding(self, docs):
@@ -84,7 +89,7 @@ class DocChatbot:
         if self.vector_db is None:
             self.files = ", ".join([item.split("/")[-1] for item in file_list])
             emb = self.docs2embedding([x.page_content for x in docs])
-            self.vector_db = faiss.IndexFlatL2(1024)
+            self.vector_db = faiss.IndexFlatL2(self.embeddings_size)
             self.vector_db.add(np.array(emb))
             self.string_db = docs
         else:
