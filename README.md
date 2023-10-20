@@ -31,7 +31,7 @@ cd chatdoc
 ```bash
 pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-pip3 install tpu_perf-1.2.24-py3-none-manylinux2014_aarch64
+pip3 install tpu_perf-1.2.24-py3-none-manylinux2014_aarch64.whl
 ```
 
 4. 下载embedding模型
