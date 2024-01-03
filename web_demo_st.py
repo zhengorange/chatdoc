@@ -119,15 +119,17 @@ with st.sidebar:
                         f.write(item.getbuffer())
                         f.close()
                     files_name.append(file_name)
-                chatbot_st.init_vector_db_from_documents(files_name)
-                if 'files' in st.session_state:
-                    st.session_state['files'] = st.session_state['files'] + files_name
-                else:
-                    st.session_state['files'] = files_name
+                if chatbot_st.init_vector_db_from_documents(files_name):
+                    if 'files' in st.session_state:
+                        st.session_state['files'] = st.session_state['files'] + files_name
+                    else:
+                        st.session_state['files'] = files_name
 
-                st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
-                st.success('知识库添加完成！', icon='🎉')
-                st.balloons()
+                    st.session_state["messages"] = [{"role": "assistant", "content": "嗨！"}]
+                    st.success('知识库添加完成！', icon='🎉')
+                    st.balloons()
+                else:
+                    st.error("文件解析失败！")
 
         if save_repository and 'files' in st.session_state:
             chatbot_st.save_vector_db_to_local()

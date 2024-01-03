@@ -84,11 +84,9 @@ embedding分为cpu版本和tpu版本，任选其一即可。
 
 ## 启动
 
-```bash
-bash run.sh
-或 
-bash run_emb_tpu.sh
-```
+1. 激活环境 `source glm/bin/activate`
+2. 启动cpu版的embedding程序`bash run.sh` 或启动tpu版的embedding程序`bash run_emb_tpu.sh`
+
 
 ## 操作说明
 
@@ -97,7 +95,7 @@ bash run_emb_tpu.sh
 ### 界面简介
 ChatDoc由控制区和聊天对话区组成。控制区用于管理文档和知识库，聊天对话区用于输入消息接受消息。
 
-上图中的10号区域是ChatDoc当前选中的文档，若10号区域为空，即ChatDoc没有选中任何文档，而此时仍在聊天对话区与ChatDoc对话，只是此时的ChatDoc是一个单纯依托ChatGLM2的ChatBot。
+上图中的10号区域是ChatDoc当前选中的文档。若10号区域为空，即ChatDoc没有选中任何文档，仍在聊天对话区与ChatDoc对话，则此时的ChatDoc是一个单纯依托ChatGLM2的ChatBot。
 
 ### 上传文档
 点击`1`选择要上传的文档，然后点击按钮`4`构建知识库。随后将embedding文档，完成后将被选中，并显示在10号区域，接着就可开始对话。我们可重复上传文档，embedding成功的文档均会进入10号区域。
@@ -107,7 +105,7 @@ ChatDoc由控制区和聊天对话区组成。控制区用于管理文档和知�
 
 ### 导入知识库
 
-进入ChatDoc我们可以从选择框`2`查看目前以持久化的知识库，选中我们需要加载的知识库后，点击按钮`3`导入知识库。完成后即可开始对话。
+进入ChatDoc我们可以从选择框`2`查看目前以持久化的知识库，选中我们需要加载的知识库后，点击按钮`3`导入知识库。完成后即可开始对话。注意cpu版的知识库和tpu版的知识库不能混用，若启动tpu版程序，则不能加载已持久化的cpu版知识库，若启动cpu版程序，则不能加载已持久化的tpu版知识库。
 
 ### 删除知识库
 

@@ -24,7 +24,12 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 
 class DocChatbot:
     _instance = None
-    db_base_path = "data/db"
+
+    embeding_tpye = os.getenv("EMBEDDING_TYPE")
+    if embeding_tpye == "cpu":
+        db_base_path = "data/db"
+    else:
+        db_base_path = "data/db_tpu"
 
     def __init__(self) -> None:
         self.llm = None
@@ -76,6 +81,7 @@ class DocChatbot:
                 loader = UnstructuredPDFLoader(file)
             else:
                 loader = UnstructuredFileLoader(file)
+
             doc = loader.load()
             doc[0].page_content = self.filter_space(doc[0].page_content)
             doc = text_splitter.split_documents(doc)
@@ -85,6 +91,10 @@ class DocChatbot:
         # for item in docs:
         #     if len(item.page_content) / count_chinese_chars(item.page_content) > 1.5:
         #         print(len(item.page_content), item.page_content)
+
+        # 文件解析失败
+        if len(docs) == 0:
+            return False
 
         if self.vector_db is None:
             self.files = ", ".join([item.split("/")[-1] for item in file_list])
